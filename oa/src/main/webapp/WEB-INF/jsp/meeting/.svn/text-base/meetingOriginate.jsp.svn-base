@@ -1,0 +1,563 @@
+﻿<%@ page language="java" contentType="text/html; charset=UTF-8" 
+	pageEncoding="UTF-8"%>
+<%@ include file="../../includes/common.jsp"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>我发起的会议</title>
+<style type="text/css">
+.ui-button {
+    padding: 0 18px;
+}
+</style>
+<script type="text/javascript">
+require([ 'chosen.jquery','tip','dialog','calendar','jquery.validate','wdatepicker','iCheck','sidewest','jquery.placeholder','css!unwrapChosen','css!ui-dialog','css!calendarCls','css!iCheckCls'], 
+		function(chosen,tip,dialog,calendar,validate,wdatepicker,iCheck,sidewest) {
+$(function(){
+	require(['jquery','iCheck','css!iCheckCls'],function($,iCheck){
+		$('input').iCheck({
+			checkboxClass: 'icheckbox_fpi-green',
+			radioClass: 'iradio_fpi-green'
+		});		
+		// 点击全选
+		$("#checkedAll").unbind('click');
+		$('#checkedAll').next().on('click',function() {
+			if ($(this).prev().is(":checked")) {
+				$("input[type=checkbox][value]").prop("checked", true);
+				$("input[type=checkbox][value]").parent().addClass('checked');
+			} else {
+				$("input[type=checkbox][value]").prop("checked", false);
+				$("input[type=checkbox][value]").parent().removeClass('checked');
+			}
+		});
+	});
+	require(['jquery', 'pager','dialog','tip'],function($,pager,dialog,tip) {
+		 // 绑定分页事件
+      var pager = $("#pager");
+      pager.pagination({
+          loading: false
+      });
+      // 设定记录数信息
+      var total1=$("#total").val();
+      var pageSize1=$("#pageSize").val();
+      var pageNumber1=$("#pageNumber").val();
+      $("#total").text(total1)
+      pager.pagination({
+          total: total1,
+          pageSize: pageSize1,
+          pageNumber:pageNumber1,
+          onSelectPage: function(pageNumber, pageSize) {
+              pager.pagination({
+                  loading: true
+              });
+              $("#pageNumber").val(pageNumber);
+              $("#pageSize").val(pageSize);
+              submitForm();
+          }
+      });
+	});
+	
+	$(".searchBtn").click(function(){
+		  submitForm();
+	  });
+	  $(".deleteCls").click(function(){
+			var id = $(this).attr("rel");
+			var message = "";
+			var params = "";
+			if(id){
+				//行删除按钮操作
+				message = "您确认要删除该日程吗？";
+				params = "id="+id;
+			}else{
+				//删除所选
+				if($("input[name='ids']:checked").length == 0){
+					
+					tip.show("请选择要删除的日程",2,1500)
+					return ;
+					
+				}
+				$("input[name='ids']:checked").each(function(){
+					params +="&meetingStaffId="+$(this).val();
+				});
+				params = params.substring(1);
+				message = "您确认要删除选中的日程吗？";
+			}
+			require(['jquery', 'dialog','css!ui-dialog'], 
+					function($,dialog) {
+			var d = dialog({
+			    content: message,
+			    subText: '删除后的信息将彻底删除，无法恢复！',
+		        msg: true,	//消息框模版设置
+			    okValue: '确定',
+			    ok: function () {
+					$.post("${contextPath}/meeting/deleteMeetings.do",params,function(data){
+						if(data.flag){
+							tip.show("删除成功",0,1500);
+							setInterval(function(){
+								submitForm();
+							},1500);	
+						}else{
+							tip.show("删除失败",1,1500);
+							setInterval(function(){
+								submitForm();
+							},1500);
+						}
+					},'json');
+			    },
+			    cancelValue: '取消',
+			    cancel: function () {}
+			});
+			d.showModal();
+			});
+		});
+	
+	
+	//时间选择
+	$("#selectTime").click(function() {
+		//打开时间选择对话框
+		var url = "${contextPath}/meeting/load/selectTime.do?tt=" + Math.random(0, 100);
+		var d = dialog({
+		    title: '选择时间',
+		    url : url,
+			width : 400,
+		});
+		d.showModal();
+
+	});
+	
+});
+});
+
+//分页中点击数字会调用该方法
+function submitForm(){
+	$("#queryForm").submit();
+}
+
+//修改会议
+function showUpdate(id){
+	var data = "meetingStaffId="+id;
+	var url = "${contextPath}/meeting/load/toModifyMeeting.do?"+data+"&tt=" + Math.random(0, 100);
+	require(['dialog','tip','css!ui-dialog'],function(dialog,tip){
+	var d = dialog({
+	    title: '修改会议',
+	    url : url,
+		height : 500,
+		width : 700,
+		okValue : '保存',
+		ok : function() {
+			var form = this.iframeNode.contentWindow.frames.$("#modifyMeetingDialog");
+			var window=this.iframeNode.contentWindow.frames;
+			if (form.valid()) {
+				var meetingId =window.$("#modifyMeetingDialog #id").val().trim();
+				var meetingName = window.$("#modifyMeetingDialog #meetingName").val().trim();
+				var meetingAddress =window.$("#modifyMeetingDialog #meetingAddress").val().trim();
+				var startDate = window.$("#modifyMeetingDialog #startDate1").val();
+				var endDate = window.$("#modifyMeetingDialog #endDate1").val();
+				var staffIds = [];
+				var staffIdsSel1 = window.$("#modifyMeetingDialog #staffIdsSel1")[0];
+				var summaryStaff=window.$("#modifyMeetingDialog #summaryStaff").val();
+				for (var i=0;i<staffIdsSel1.options.length; i++) {
+					staffIds[staffIds.length] = staffIdsSel1.options[i].value;
+				}
+				if (staffIds.length==0) {
+					tip.show("会议出席人员不能为空",2,1500);
+					return false;
+				}
+				if ( (startDate ) == (endDate )||parseInt(endDate)<parseInt(startDate) ){
+					tip.show("会议时间不正确",2,1500);
+					return false;
+				}
+				
+				if (window.$("#remindSms")[0].checked||window.$("#remindEmail")[0].checked||window.$("#remindMsg")[0].checked){
+				}else{
+					tip.show("请至少选择一种提醒方式",2,1500);
+						return false;
+				}
+				var data = "id="+meetingId+"&meetingName=" + meetingName;
+				data += "&meetingAddress=" + meetingAddress;
+				data += "&startTime=" + startDate + ":00";
+				data += "&endTime=" + endDate + ":00";
+				
+				for (var i=0; i<staffIds.length; i++) {
+					data += "&staffIds=" + staffIds[i];
+				}
+				data += "&recorderId=" + window.$("#summaryStaff").val();
+				
+				if (window.$("#remindSms")[0].checked) {
+					data += "&remindSms=1";
+				}
+				if (window.$("#remindEmail")[0].checked) {
+					data += "&remindEmail=1";
+				}
+				if (window.$("#remindMsg")[0].checked) {
+					data += "&remindMsg=1";
+				}
+				 $.ajax({
+					url : '${contextPath}/meeting/saveMeeting.do',
+					type : "post",
+					success : function(result) {
+						tip.show("会议修改成功",0,1500,function(){
+							parent.location.reload();
+						});
+					},
+					error: function() {
+						tip.show("修改会议失败",1,1500);
+					},
+					data : data,
+					async : false
+				});  
+			}else{
+				return false;
+			}
+				
+		},
+		cancelValue : '取消',
+		cancel : function() {
+		}
+	});
+	d.showModal();
+	});
+};
+
+
+//删除会议
+function del(id) {
+	require(['dialog','tip'],function(dialog,tip) {
+	var data = "meetingStaffId="+id;
+	require(['dialog','css!ui-dialog'],function(dialog){
+	dialog({
+	    title: "信息提示",
+	 	content : "确实要删除吗?",
+	 	subText: '删除后的信息将彻底删除，无法恢复！',
+		msg: true,	//消息框模版设置
+	 	width: 150,
+		    okValue: '确定',
+		    ok: function () {
+ 		   	$.ajax({
+ 				url : "deleteMeetings.do",
+ 				type : "post",
+ 				async : false,
+ 				data : data,
+ 				success : function(r) {
+ 					tip.show("删除成功",0,1500);
+					setInterval(function(){
+						submitForm();
+					},1500);	
+ 				},
+ 				error : function() {
+ 					tip.show("删除失败",1,1500);
+					setInterval(function(){
+						submitForm();
+					},1500);
+ 				}
+ 			});
+		    },
+			 cancelValue: '取消',
+		     cancel: function () {}
+	}).showModal();
+	});
+	});
+}
+$(function(){
+	$("#startDate").val(parent.document.getElementById("startTimeSearch").value);
+	$("#endDate").val(parent.document.getElementById("endTimeSearch").value);
+	
+	$("#startDate").click(function(){
+		WdatePicker({dateFmt:'yyyy-MM-dd',maxDate:'#F{$dp.$D(\'endDate\')||\'2050-01-01\'}'});
+	});
+	$("#endDate").click(function(){
+		WdatePicker({dateFmt:'yyyy-MM-dd',minDate:'#F{$dp.$D(\'startDate\')}'});
+	});
+	$("#searchBtn").click(function(){
+		parent.document.getElementById("startTimeSearch").value = $("#startDate").val() ;
+		parent.document.getElementById("endTimeSearch").value = $("#endDate").val() ;
+		parent.document.getElementById("queryForm").submit();
+	});
+	
+});
+$("#searchBtn").click(function(){
+	submitForm();
+});
+$("#checkedAll").unbind('click');
+$('#checkedAll').next().on('click',function() {
+	if ($(this).prev().is(":checked")) {
+		$("input[type=checkbox][value]").prop("checked", true);
+		$("input[type=checkbox][value]").parent().addClass('checked');
+	} else {
+		$("input[type=checkbox][value]").prop("checked", false);
+		$("input[type=checkbox][value]").parent().removeClass('checked');
+	}
+});
+</script>
+
+</head>
+<body>
+    <div class="fpi-sidecontent" style="padding:10px;">
+       	<!-- 主内容区 -->
+                <div class="ui-crumbs"><span>我发起的会议</span></div>
+            <hr class="ui-hr">
+                <div class="search-group">
+                	<form id="queryForm" method="post" name="queryForm" action="${contextPath}/meeting/meetingOriginate.do">	
+					<input type="hidden" id="pageSize" name="pageSize" value="${pageData.pageSize}" /> 
+					<input type="hidden" id="pageNumber" name="pageNumber" value="${pageData.pageNumber }" />
+					<input type="hidden" id="total" name="total" value="${pageData.total }"/>
+						
+			<div class="search-items">
+					<div class="search-item" >
+                        
+                            <span>请选择时间范围</span>
+                             <input type="text" readonly="readonly" id="startDate" value="${startDate}" class="Wdate input-large"cssClass="select-width"  style="width:136px;">
+                            至
+                            <input type="text" readonly="readonly" id="endDate" value="${endDate}" class="Wdate input-large"  style="width:136px;">
+                            <input type="hidden" id="startTimeSearch" name="startTimeSearch" value="${param.startTimeSearch}"/>
+							<input type="hidden" id="endTimeSearch" name="endTimeSearch" value="${param.endTimeSearch}"/>
+                        </div>
+                    <div class="search-item">
+                        <input type="text" class="pkou" value="${meetingNameSearch}" placeholder="请输入会议名称" name="meetingNameSearch" id="meetingNameSearch">
+                        <a href="javascript:;" id="searchBtn" class="ui-button ui-button-mblue search">查询</a>
+                    </div>
+                    </div>
+                    <div class="operate">
+					<a href="javascript:void(0)"
+					class="ui-button ui-button-mbluenew"  id="originate">
+						<span>发起</span>
+					</a>
+					<a href="javascript:void(0)"
+					class="ui-button ui-button-mdelete deleteCls" id="deleteMeeting">
+						<span>批量删除</span>
+					</a>
+				</div>
+                    </form>
+                </div>
+               
+            </div>
+            <div class="email-content">
+                <table class="table table-hover table-bordered ">
+                    <tr>
+                        <th>
+                        <input type="checkbox" id="checkedAll" value="" />
+                        </th>
+                        <th>序号</th>
+                        <th>会议名称</th>
+                        <th>会议地点</th>
+                        <th>会议开始时间</th>
+                        <th>会议结束时间</th>
+                        <th>通知方式</th>
+                        <th>操作</th>
+                    </tr>
+                    <tbody id="meetingBody">
+                    <c:forEach var="item" items="${pageData.data}" varStatus="vs">
+	                <tr>
+	                	<td>
+	                    	<input type="checkbox" name="ids" value="${item[10]}"/>
+	                    </td>
+	                    <td>${vs.count}</td>
+	                    <td style="padding-left:3px;text-align: left;">
+							<input type="hidden" value="${item[10] }" alt="${item[0]}"/>
+							<span style="color: #0088cc;  font-size: 14px; cursor: pointer;"  onclick="showDetail(this)">${item[1]}</span>
+						</td>
+	                    <td style="padding-left:3px;text-align: left;">${item[2]}</td>
+	                    <td class="time">
+	                    	<c:if test="${fn:substring(item[3], 11, 13) == '00'}">
+								<fmt:formatDate pattern="yyyy-MM-dd 12:mm" value="${item[3] }" />
+							</c:if>
+							<c:if test="${fn:substring(item[3], 11, 13) != '00'}">
+								<fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${item[3] }" />
+							</c:if>
+						</td>
+	                    <td class="time">
+	                    	<c:if test="${fn:substring(item[4], 11, 13) == '00'}">
+								<fmt:formatDate pattern="yyyy-MM-dd 12:mm" value="${item[4] }" />
+							</c:if>
+							<c:if test="${fn:substring(item[4], 11, 13) != '00'}">
+								<fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${item[4] }" />
+							</c:if>
+						</td>
+	                    <td>
+							<c:if test="${item[5]=='1' }">手机短信</c:if>
+							<c:if test="${item[6]=='1' }">即时消息</c:if>
+							<c:if test="${item[7]=='1' }">电子邮件</c:if>
+							&nbsp;
+						</td>
+						<td>
+							<a href="javascript:;" class="group-icon gray-edit"  title="编辑" onclick="showUpdate('${item[10]}')"></a>
+							<a href="javascript:;" class="group-icon gray-delete del" title="删除"onclick="del('${item[10]}')"></a>
+						</td>
+	                </tr> 
+	               
+	                </c:forEach>
+	                <!-- 分页 -->
+					<c:if test="${empty pageData.data}">
+						<tr><td colspan="8" style="color: red">没有数据!</td></tr>
+					</c:if>
+	                </tbody>
+	                
+                </table>
+            </div>
+            <div id="pager" ></div>
+        </div>
+	 </div>
+	
+	<script type="text/javascript" src="${contextPath }/js/jquery.placeholder.js" charset="UTF-8"></script>
+	<script type="text/javascript">
+	var topdialog;
+	require(['dialog','tip','css!ui-dialog'], function(dialog,tip){
+		topdialog=dialog;
+	});
+	$('#meetingNameSearch').placeholder();
+		function showDetail(obj){
+			var tr = $(obj).parent().parent();
+			var checkbox = tr.children().eq(2).children().first();
+			var meetingId = checkbox.attr("alt");
+			var url = "${contextPath}/meeting/load/showDetail.do?meetingId="+meetingId+"&tt=" + Math.random(0, 100);
+			require(['dialog','css!ui-dialog'],function(dialog){
+			var d = dialog({
+			    title: '发起会议',
+			    url : url,
+			    height : 350,
+				width : 600,
+				okValue: "确定",
+				ok: function () {
+					
+				}
+			});
+			d.showModal();
+			});
+		}
+		
+
+		$("#startTimeSearch").val("${param.startTimeSearch}");
+		$("#endTimeSearch").val("${param.endTimeSearch}");
+
+		var date = new Date();
+
+		
+		//修改会议
+		require(['dialog','css!ui-dialog'],function(dialog){
+		$("#modifyMeeting").click(function(){
+			var data = "";var count = 0;
+			$(".checkOne.check-box-selected").each(function(){
+				data +="&meetingStaffId="+$(this).parent().find("#meetingStaffId").val();
+				count++;
+			});
+			
+			if (count==0 || count>1) {
+				
+				dialog({
+				    title: "信息提示",
+				 	content : "请选择一条记录进行修改",
+		 		    okValue: '确定',
+		 		    ok: function () {
+		 		    	return;
+		 		    }
+				}).showModal();
+				return;
+			}else{
+				data = data.substring(1);
+			}
+			
+			var url = "${contextPath}/meeting/load/toModifyMeeting.do?"+data+"&tt=" + Math.random(0, 100);
+			var d = dialog({
+			    title: '修改会议',
+			    url : url,
+				height : 500,
+				width : 700,
+			});
+			d.showModal();
+			
+		});
+		
+		
+		
+		//发起会议
+		require(['dialog','tip','css!ui-dialog'], function(dialog,tip){
+		$("#originate").click(function() {
+			var url = "${contextPath}/meeting/load/toOriginate.do?tt=" + Math.random(0, 100);
+			var d = dialog({
+			    title: '发起会议',
+			    url : url,
+				height : 500,
+				width : 700,
+				okValue : '保存',
+				ok : function() {
+					var form = this.iframeNode.contentWindow.frames.$("#originateMeeting");
+					var window=this.iframeNode.contentWindow.frames;
+					if (form.valid()) {
+						
+						var meetingName = window.$("#originateMeeting #meetingName").val().trim();
+						var meetingAddress =window.$("#originateMeeting #meetingAddress").val().trim();
+						var startDate = window.$("#originateMeeting #startDate").val();
+						var endDate = window.$("#originateMeeting #endDate").val();
+						var staffIds = [];
+						var staffIdsSel1 = window.$("#originateMeeting #staffIdsSel1")[0];
+						var summaryStaff=window.$("#originateMeeting #summaryStaff").val();
+						for (var i=0;i<staffIdsSel1.options.length; i++) {
+							staffIds[staffIds.length] = staffIdsSel1.options[i].value;
+						}
+						if (staffIds.length==0) {
+							tip.show("会议出席人员不能为空",2,1500);
+							return false;
+						}
+						if ( (startDate ) == (endDate )||parseInt(endDate)<parseInt(startDate) ){
+							tip.show("会议时间不正确",2,1500);
+							return false;
+						}
+						
+						if (window.$("#remindSms")[0].checked||window.$("#remindEmail")[0].checked||window.$("#remindMsg")[0].checked){
+						}else{
+							tip.show("请至少选择一种提醒方式",2,1500);
+								return false;
+						}
+						
+						var data = "meetingName=" + meetingName;
+						data += "&meetingAddress=" + meetingAddress;
+						data += "&startTime=" + startDate + ":00";
+						data += "&endTime=" + endDate + ":00";
+						
+						for (var i=0; i<staffIds.length; i++) {
+							data += "&staffIds=" + staffIds[i];
+						}
+						data += "&recorderId=" + window.$("#summaryStaff").val();
+						
+						if (window.$("#remindSms")[0].checked) {
+							data += "&remindSms=1";
+						}
+						if (window.$("#remindEmail")[0].checked) {
+							data += "&remindEmail=1";
+						}
+						if (window.$("#remindMsg")[0].checked) {
+							data += "&remindMsg=1";
+						}
+						 $.ajax({
+							url : '${contextPath}/meeting/saveMeeting.do',
+							type : "post",
+							success : function(result) {
+								tip.show("会议建立成功",0,1500,function(){
+									parent.location.reload();
+								});
+							},
+							error: function() {
+								tip.show("建立会议失败",1,1500);
+							},
+							data : data,
+							async : false
+						});  
+					}else{
+						return false;
+					}
+						
+				},
+				cancelValue : '取消',
+				cancel : function() {
+				}
+			});
+			d.showModal();
+		});
+		});
+	});
+
+	</script>
+
+</body>
+</html>

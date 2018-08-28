@@ -1,0 +1,263 @@
+﻿<%@ page language="java" contentType="text/html; charset=UTF-8" 
+	pageEncoding="UTF-8"%>
+<%@ include file="../../includes/common.jsp"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>我参加的会议</title>
+<style type="text/css">
+.ui-button {
+    padding: 0 18px;
+}
+</style>
+
+<script type="text/javascript">
+require([ 'chosen.jquery','tip','dialog','calendar','jquery.validate','wdatepicker','iCheck','sidewest','jquery.placeholder','css!unwrapChosen','css!ui-dialog','css!calendarCls','css!iCheckCls'], 
+		function(chosen,tip,dialog,calendar,validate,wdatepicker,iCheck,sidewest) {
+$(function(){
+	//时间选择
+	$("#selectTime").click(function() {
+		//打开时间选择对话框
+		var url = "${contextPath}/meeting/load/selectTime.do?tt=" + Math.random(0, 100);
+		var d = dialog({
+		    title: '选择时间',
+		    url : url,
+			width : 400,
+		});
+		d.showModal();
+	});
+	
+	//创建分页栏 参数为点击分页色块最大个数
+	require(['jquery', 'pager'],function($,pager) {
+		 // 绑定分页事件
+       var pager = $("#pager");
+       pager.pagination({
+           loading: false
+       });
+       // 设定记录数信息
+       var total1=$("#total").val();
+       var pageSize1=$("#pageSize").val();
+       var pageNumber1=$("#pageNumber").val();
+       $("#total").text(total1)
+       pager.pagination({
+           total: total1,
+           pageSize: pageSize1,
+           pageNumber:pageNumber1,
+           onSelectPage: function(pageNumber, pageSize) {
+               pager.pagination({
+                   loading: true
+               });
+               $("#pageNumber").val(pageNumber);
+               $("#pageSize").val(pageSize);
+               submitForm();
+           }
+       });
+	});
+});
+
+$("#startTimeSearch").val("${param.startTimeSearch}");
+$("#endTimeSearch").val("${param.endTimeSearch}");
+$("#searchBtn").click(function(){
+	submitForm();
+});
+	
+
+
+});
+//分页中点击查询会调用该方法
+function submitForm(){
+	$("#queryForm").submit();
+}
+function showDetail(obj){
+	var tr = $(obj).parent().parent();
+	var checkbox = tr.children().eq(1).children().first();
+	var meetingId = checkbox.attr("alt");
+
+	var url = "${contextPath}/meeting/load/showDetail.do?meetingId="+meetingId+"&tt=" + Math.random(0, 100);
+	require(['dialog','css!ui-dialog'],function(dialog){
+	var d = dialog({
+	    title: '发起会议',
+	    url : url,
+	    height : 400,
+		width : 600,
+		okValue: "确定",
+		ok: function () {
+			
+		}
+	});
+	d.showModal();
+	});
+}
+$("#startTimeSearch").val("${param.startTimeSearch}");
+$("#endTimeSearch").val("${param.endTimeSearch}");
+
+
+//加入会议纪要
+function addSummary(id, el) {
+	require(['jquery', 'pager','dialog'],function($,pager,dialog) {
+	var url = "${contextPath}/meeting/load/toAddSummary.do?id="+id+"&tt=" + Math.random(0, 100);
+	var d = dialog({
+	    title: '会议纪要',
+	    url : url,
+	    height : 250,
+		width : 490,
+		
+	});
+	d.showModal();
+	});
+}
+
+//查看会议纪要
+function viewSummary(id, el) {
+	var url = "${contextPath}/meeting/load/toViewSummary.do?id="+id+"&tt=" + Math.random(0, 100);
+	require(['jquery', 'pager','dialog'],function($,pager,dialog) {
+	var d = dialog({
+	    title: '会议纪要',
+	    url : url,
+	    height : 300,
+		width : 490,
+	 	okValue: "关闭",
+	    ok: function () {
+	    }
+	});
+	d.showModal();
+	});
+}
+
+$(function(){
+	$("#startDate").val(parent.document.getElementById("startTimeSearch").value);
+	$("#endDate").val(parent.document.getElementById("endTimeSearch").value);
+	
+	$("#startDate").click(function(){
+		WdatePicker({dateFmt:'yyyy-MM-dd',maxDate:'#F{$dp.$D(\'endDate\')||\'2050-01-01\'}'});
+	});
+	$("#endDate").click(function(){
+		WdatePicker({dateFmt:'yyyy-MM-dd',minDate:'#F{$dp.$D(\'startDate\')}'});
+	});
+	$("#searchBtn").click(function(){
+		parent.document.getElementById("startTimeSearch").value = $("#startDate").val() ;
+		parent.document.getElementById("endTimeSearch").value = $("#endDate").val() ;
+		parent.document.getElementById("queryForm").submit();
+	});
+	
+});
+</script>
+
+
+
+</head>
+<body>
+    <div class="fpi-sidecontent" style="padding:10px;">
+       	<!-- 主内容区 -->     	
+<!--         <div class="fpi-u-1"> -->
+			<div class="ui-crumbs ">
+                <span>我参加的会议</span>
+            </div>
+            <hr class="ui-hr">
+			<div class="search-group">
+                	<form id="queryForm" method="post" name="queryForm" action="${contextPath}/meeting/meetingJoin.do">	
+					<input type="hidden" id="pageSize" name="pageSize" value="${pageData.pageSize}" /> 
+					<input type="hidden" id="pageNumber" name="pageNumber" value="${pageData.pageNumber }" />
+					<input type="hidden" id="total" name="total" value="${pageData.total }"/>
+					<input type="hidden" id="startTimeSearch" name="startTimeSearch" value="${param.startTimeSearch}"/>
+					<input type="hidden" id="endTimeSearch" name="endTimeSearch" value="${param.endTimeSearch}"/>
+						
+<div class="search-items">
+					<div class="search-item">
+                            <label>请选择时间范围</label>
+                          <input type="text" readonly="readonly" id="startDate" value="${startDate}" class="Wdate input-large"cssClass="select-width"  style="width:136px;">
+                            至
+                            <input type="text" readonly="readonly" id="endDate" value="${endDate}" class="Wdate input-large"  style="width:136px;">
+                            
+                            <input type="hidden" id="startTimeSearch" name="startTimeSearch" value="${param.startTimeSearch}"/>
+							<input type="hidden" id="endTimeSearch" name="endTimeSearch" value="${param.endTimeSearch}"/>
+							
+                    </div>
+                    <div class="search-item ">
+                        <input type="text"  class="pkou" value="${meetingNameSearch}" placeholder="请输入会议名称" name="meetingNameSearch" id="meetingNameSearch">
+                       <a href="javascript:;"  id="searchBtn"  class="ui-button ui-button-mblue">查询</a>
+                    </div>
+                    </div>
+                    </form>
+                </div>
+                <div class="email-control">
+                </div>
+            </div>
+            <div class="email-content">
+                <table class="table table-hover table-bordered ">
+                    <tr>
+                        <th >序号</th>
+                        <th >会议名称</th>
+                        <th >发起人</th>
+                        <th >会议地点</th>
+                        <th >会议开始时间</th>
+                        <th >会议结束时间</th>
+                        <th >通知方式</th>
+                        <th >会议状态</th>
+                        <th >会议纪要</th>
+                    </tr>
+                    <tbody id="meetingBody">
+					<c:forEach varStatus="vs" var="meeting" items="${pageData.data}">
+					<tr >
+						<td >${vs.count}</td>
+						<td style="padding-left:3px;text-align: left;">
+							<input type="hidden" value="${meeting[10] }" alt="${meeting[0]}"/>
+							<span style="color: #0088cc;  font-size: 14px; cursor: pointer;"  onclick="showDetail(this)">${meeting[1]}</span>
+						</td>
+						<td >${meeting[11] }</td>
+						<td style="padding-left:3px;text-align: left;">${meeting[2] }</td>
+						
+						<td class="time">						
+							<c:if test="${fn:substring(meeting[3], 11, 13) == '00'}">
+								<fmt:formatDate pattern="yyyy-MM-dd 12:mm" value="${meeting[3] }"></fmt:formatDate>
+							</c:if>
+							<c:if test="${fn:substring(meeting[3], 11, 13) != '00'}">
+								<fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${meeting[3] }"></fmt:formatDate>
+							</c:if>
+						</td>
+						<td class="time">
+							<c:if test="${fn:substring(meeting[4], 11, 13) == '00'}">
+								<fmt:formatDate pattern="yyyy-MM-dd 12:mm" value="${meeting[4] }"></fmt:formatDate>
+							</c:if>
+							<c:if test="${fn:substring(meeting[4], 11, 13) != '00'}">
+								<fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${meeting[4] }"></fmt:formatDate>
+							</c:if>
+						</td>
+						<td >
+							<c:if test="${meeting[5]=='1' }">手机短信</c:if>
+							<c:if test="${meeting[6]=='1' }">即时消息</c:if>
+							<c:if test="${meeting[7]=='1' }">电子邮件</c:if>
+							&nbsp;
+						</td>
+						<td >
+							<c:if test="${meeting[9]!=1 }">未结束</c:if>
+							<c:if test="${meeting[9]==1 }">已结束</c:if>
+						</td>
+						<td >${meeting[12]} 
+							<c:if test="${null==meeting[12] }">
+								<c:if test="${sessionScope.session_userId==meeting[10] || sessionScope.session_userId==meeting[17]}">
+									<span style="color:#0088cc; font-size: 14px; cursor:pointer;" onclick="addSummary('${meeting[0]}',this);">添加</span>
+								</c:if>
+								<c:if test="${sessionScope.session_userId!=meeting[10] && sessionScope.session_userId!=meeting[17]}">
+									<span >未添加</span>
+								</c:if>
+							</c:if>
+							<c:if test="${null!=meeting[12] }">
+								<span style="color:#0088cc; font-size: 14px; cursor:pointer;" onclick="viewSummary('${meeting[0]}',this);">查看</span>
+							</c:if>
+						</td>
+					</tr>
+					</c:forEach>
+	                <!-- 分页 -->
+					<c:if test="${empty pageData.data}">
+						<tr><td colspan="9" style="color: red">没有数据!</td></tr>
+					</c:if>
+	                </tbody>
+                </table>
+            </div>
+            <div id="pager" ></div>
+        </div>
+ </div>
+</body>
+</html>

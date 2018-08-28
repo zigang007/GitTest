@@ -1,0 +1,102 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" 
+	pageEncoding="UTF-8"%>
+<%@ include file="../../includes/common.jsp"%>
+<%@ include file="../../includes/JsAndCssNoDecorator.jsp"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<style type="text/css">
+	input.input-xlarge, textarea.input-xlarge{
+		height:26px;
+	}
+
+body {
+	margin: 0px;
+}
+</style>
+<script type="text/javascript">
+require(['jquery','iCheck','css!iCheckCls'], function($, iCheck){
+	$(function() {
+		$("input").iCheck({
+				checkboxClass: 'icheckbox_fpi-green',
+				radioClass: 'iradio_fpi-green'
+		});
+	});
+});
+</script>
+<title>会议详情</title>
+
+</head>
+<body>
+
+		<form class="form-vertical" id="detailMeetingDialog" >
+			<div class="form-vertical-item">
+				<label class="title">会议名称</label>
+				<div class="controls"><input id="meetingName" type="text" value="${meeting.meetingName }" class="input-xlarge" disabled="disabled">
+				</div>
+			</div>
+			<div class="form-vertical-item">
+				<label class="title">会议地点</label>
+				<div class="controls"><input  id="meetingAddress" readonly="readonly" type="text" value="${meeting.meetingAddress }" class="input-xlarge" disabled="disabled"></div>
+			</div>
+			
+			<div class="form-vertical-item">
+		    <label class="title">会议开始时间</label>
+		    <div class="controls"><input id="startDate1" disabled="disabled"  readonly="readonly" type="text" value="<fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${meeting.startTime }"></fmt:formatDate>" class="input-xlarge Wdate">
+			</div> 
+			</div>
+			<div class="form-vertical-item">
+		    <label class="title">会议结束时间</label>
+		    <div class="controls"><input id="endDate1" disabled="disabled" readonly="readonly"  readonly="readonly" type="text" value="<fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${meeting.endTime }"></fmt:formatDate>" class="input-xlarge Wdate">
+		   </div>
+			</div>
+			<div class="form-vertical-item">
+			   <label class="title">会议出席人员</label>
+			   <div class="controls">
+			  	 <div style="float:left; width: 270px;">
+				   <select size="4" id="staffIdsSel1" multiple="multiple" disabled="disabled" style="width: 270px">
+					<c:forEach items="${staff }" var="meetingStaff">
+						<c:if test="${meetingStaff.isOriginator != '1' }">
+							<option value="${meetingStaff.staffId }">${meetingStaff.staffName }</option>
+						</c:if>
+					</c:forEach>
+				   </select>
+				  </div>
+			   </div>
+			</div>
+			<div class="form-vertical-item">
+			  <div style="padding-top:10px;">
+	           <label class="title">会议纪要人员</label>
+	           <div class="controls">
+	           	  <c:forEach items="${staff }" var="meetingStaff">
+						<c:if test="${meetingStaff.staffId == meeting.recorderId}">
+							<input id="summaryStaff" type="text" value="${meetingStaff.staffName}" rel="${meetingStaff.staffId}"  disabled="disabled" class="input-xlarge validate[required]">
+						</c:if>
+					</c:forEach>
+	           </div>
+	          </div>
+	       	</div>
+			<div class="form-vertical-item">
+				<label class="title">提醒方式</label>
+				<div class="controls">
+					<label class="checkbox-inline">
+						<input id="remindSms" type="checkbox" disabled="disabled" <c:if test="${meeting.remindSms == 1}">checked='checked'</c:if> />
+						<span for="remindSms">手机短信</span>
+					</label>
+					<label class="checkbox-inline">
+						<input id="remindEmail" type="checkbox" disabled="disabled" <c:if test="${meeting.remindEmail == 1}">checked='checked'</c:if>/>
+						<span for="remindEmail">邮件</span>
+					</label>
+					<label class="checkbox-inline">
+						<input id="remindMsg" type="checkbox" disabled="disabled" <c:if test="${meeting.remindMsg == 1}">checked='checked'</c:if>/>
+						<span for="remindMsg">即时消息</span>
+					</label>
+				</div>
+			</div>
+		</form>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.test</groupId>
+  <artifactId>boot_mini</artifactId>
+  <packaging>war</packaging>
+   <version>4.0.0</version>
+  <name>boot_mini Maven Webapp</name>
+  <url>http://maven.apache.org</url>
+  
+  <!-- Inherit defaults from Spring Boot -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.0.0.RELEASE</version>
+    </parent>
+  <dependencies> 
+  	 <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+  
+	<dependency>
+	    <groupId>org.junit.jupiter</groupId>
+	    <artifactId>junit-jupiter-api</artifactId>
+	    <version>5.3.0-M1</version>
+	    <scope>test</scope>
+	</dependency>
+    <!-- 热部署 -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-devtools</artifactId>
+        <optional>true</optional>
+	</dependency>
+    
+    <!--jsp支持-->
+    <!-- servlet 依赖. -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>jstl</artifactId>
+    </dependency>
+    <!-- tomcat 的支持.-->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-tomcat</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat.embed</groupId>
+      <artifactId>tomcat-embed-jasper</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <!--整合mysql  -->
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+    </dependency>
+    
+   
+	<!-- 添加fastjson支持 -->
+	<dependency>
+	    <groupId>com.alibaba</groupId>
+	    <artifactId>fastjson</artifactId>
+	    <version>1.2.47</version>
+	</dependency>
+	
+	<!-- 整合mybitas -->
+	<dependency>
+	    <groupId>org.mybatis.spring.boot</groupId>
+	    <artifactId>mybatis-spring-boot-starter</artifactId>
+	    <version>1.2.0</version>
+	</dependency>
+	<!-- springboot分页插件 -->
+	<dependency>
+	    <groupId>com.github.pagehelper</groupId>
+	    <artifactId>pagehelper-spring-boot-starter</artifactId>
+	    <version>1.2.3</version>
+	</dependency>
+<!-- https://mvnrepository.com/artifact/servlets.com/cos -->
+<dependency>
+    <groupId>servlets.com</groupId>
+    <artifactId>cos</artifactId>
+    <version>05Nov2002</version>
+</dependency>
+
+
+  
+	   
+  </dependencies>
+  
+  <build>
+        <finalName>springbootProject</finalName>
+  <plugins>
+            <!-- 指定jdk版本 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+ 	</plugins>
+    </build>  
+</project>

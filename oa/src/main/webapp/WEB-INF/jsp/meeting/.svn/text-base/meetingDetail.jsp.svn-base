@@ -1,0 +1,52 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<c:url var="root" value="${contextPath}/"></c:url>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="stylesheet" type="text/css" href="${root }css/cupertino/jquery-ui-1.8.15.custom.css" media="screen" />
+<link rel='stylesheet' type='text/css' href='${root }css/fullcalendar/fullcalendar.css' />
+<link rel="stylesheet" type="text/css" href="${root }css/pagination/pagination.css">
+<style type="text/css">
+.ui-widget {
+	font-size: 75%;
+}
+
+body {
+	margin: 0px;
+}
+</style>
+<script type="text/javascript" src="${root }js/jquery-1.6.2.min.js"></script>
+<script type="text/javascript" src="${root }js/jquery-ui-1.8.15.custom.min.js"></script>
+<script type="text/javascript" src="${root }js/fullcalendar/fullcalendar.min.js"></script>
+<script type="text/javascript" src="${root }js/jquery.ui.datepicker-zh-CN.js"></script>
+<script type="text/javascript" src="${root }js/jstree/jquery.jstree.js"></script>
+<script type="text/javascript" src="${root }js/jquery.pagination.js"></script>
+
+<title>会议安排</title>
+
+</head>
+<body>
+	<div style="text-align: center; font-size: 16px; padding: 10px; font-weight: bold;">
+		会议安排 [
+		<c:out value="${meeting.meetingName }"></c:out>
+		]
+	</div>
+	<hr size="1" />
+	<div style="text-align: center">
+		发起人：${meeting.originatorName }
+		&nbsp;&nbsp;&nbsp;会议地点：<c:out value="${meeting.meetingAddress }"></c:out>
+		&nbsp;&nbsp;&nbsp;开始时间：<fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${meeting.startTime }"></fmt:formatDate>
+		&nbsp;&nbsp;&nbsp;结束时间：<fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${meeting.endTime }"></fmt:formatDate>
+	</div>
+	<div>
+		<pre style="margin: 3px">    <c:out value="${meeting.meetingName }"></c:out>
+		</pre>
+	</div>
+</body>
+</html>
